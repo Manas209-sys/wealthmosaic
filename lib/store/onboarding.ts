@@ -40,6 +40,17 @@ export const useOnboarding = create<OnboardingState>()(
       setHoldings: (holdings) => set({ holdings }),
       reset: () => set({ name: '', email: '', mobile: '', pan: '', userType: '', riskScore: 0, riskProfile: '', riskAnswers: [], mandateId: '', mandateConfirmed: false, holdings: [] }),
     }),
-    { name: 'wm-onboarding' }
+    {
+      name: 'wm-onboarding',
+      // R-23: persist only non-sensitive flow state. Name, email, mobile, PAN, holdings and
+      // risk answers stay in memory and are never written to localStorage.
+      partialize: (state) => ({
+        userType: state.userType,
+        riskScore: state.riskScore,
+        riskProfile: state.riskProfile,
+        mandateId: state.mandateId,
+        mandateConfirmed: state.mandateConfirmed,
+      }),
+    }
   )
 )

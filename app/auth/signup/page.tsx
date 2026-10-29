@@ -23,8 +23,10 @@ export default function Signup() {
     if (err) { setError(err); return; }
     setLoading(true);
     setError("");
+    // R-23: prototype only. No account is created; we just continue the demo flow.
     setProfile({ email: form.email, mobile: form.mobile });
-    setTimeout(() => { setLoading(false); router.push("/onboarding/profile"); }, 800);
+    setLoading(false);
+    router.push("/onboarding/profile");
   }
 
   const field = (label: string, key: string, type = "text", placeholder = "") => (
@@ -48,6 +50,9 @@ export default function Signup() {
           <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#185FA5,#534AB7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#fff", margin: "0 auto 12px" }}>◈</div>
           <div style={{ fontSize: 20, fontWeight: 500, color: "#F8FAFC" }}>WealthMosaic</div>
           <div style={{ fontSize: 13, color: "#64748B", marginTop: 4 }}>Create your account</div>
+          <div style={{ display: "inline-block", marginTop: 10, padding: "4px 10px", borderRadius: 999, background: "#FEF3C7", color: "#92400E", fontSize: 11, fontWeight: 500 }}>
+            Prototype demo: no account is created and nothing is saved
+          </div>
         </div>
 
         {/* Card */}
@@ -72,7 +77,7 @@ export default function Signup() {
             disabled={loading}
             style={{ width: "100%", background: "linear-gradient(135deg,#2563EB,#7C3AED)", color: "#fff", border: "none", borderRadius: 10, padding: "13px", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? "Creating account..." : "Create account →"}
+            {loading ? "Continuing..." : "Continue demo →"}
           </button>
 
           <div style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "#64748B" }}>
