@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { authFetch } from "@/lib/supabase/auth-fetch";
 
 interface Message {
   role: "user" | "assistant";
@@ -64,7 +65,7 @@ export default function ChatPage() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("/api/chat", {
+      const res = await authFetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: updatedMessages, context: pdfContext }),

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Groq from "groq-sdk";
 import { CHAT_SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
+import { getRequestUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,7 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// R-26: simple per-IP rate limit (20 requests / minute). In-memory, so it is per server instance;
+// R-26: per-user rate limit (20 requests / minute). In-memory, so it is per server instance;
 // switch to a shared store (e.g. Upstash Redis) when running more than one instance.
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60_000;
@@ -25,11 +26,6 @@ function rateLimited(key: string): boolean {
     }
   }
   return recent.length > RATE_LIMIT;
-}
-
-function clientKey(req: NextRequest): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  return (fwd ? fwd.split(",")[0].trim() : req.headers.get("x-real-ip")) || "unknown";
 }
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -52,8 +48,12 @@ const json = (body: unknown, status: number) =>
 
 export async function POST(req: NextRequest) {
   try {
-    // TODO(R-26): add a Supabase session check returning 401 once real sign-up/login exists (see R-23).
-    if (rateLimited(clientKey(req))) {
+    // R-26: signed-in Supabase users only.
+    const user = await getRequestUser(req);
+    if (!user) {
+      return json({ error: "Sign in to use the assistant." }, 401);
+    }
+    if (rateLimited(user.id)) {
       return json({ error: "Too many requests. Please wait a minute." }, 429);
     }
 

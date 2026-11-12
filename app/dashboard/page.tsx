@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useOnboarding } from "@/lib/store/onboarding";
 import { MANDATES } from "@/lib/mandates";
+import { authFetch } from "@/lib/supabase/auth-fetch";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
@@ -44,7 +45,7 @@ export default function Dashboard() {
       : `\n\nMy mandate: ${mandate.label}. Risk score: ${riskScore}/35.`;
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await authFetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

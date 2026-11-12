@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/lib/store/onboarding";
+import { supabase } from "@/lib/supabase/client";
 
 export default function Signup() {
   const router = useRouter();
@@ -9,6 +10,7 @@ export default function Signup() {
   const [form, setForm] = useState({ email: "", mobile: "", password: "", confirm: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState("");
 
   function validate() {
     if (!form.email.includes("@")) return "Enter a valid email";
@@ -23,9 +25,20 @@ export default function Signup() {
     if (err) { setError(err); return; }
     setLoading(true);
     setError("");
-    // R-23: prototype only. No account is created; we just continue the demo flow.
-    setProfile({ email: form.email, mobile: form.mobile });
+    // R-26: real Supabase account (needed for the AI assistant). Onboarding answers stay in the browser.
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: { data: { mobile: form.mobile } },
+    });
     setLoading(false);
+    if (signUpError) { setError(signUpError.message); return; }
+    setProfile({ email: form.email, mobile: form.mobile });
+    if (!data.session) {
+      // Email confirmation is on in the Supabase project: the user signs in after confirming.
+      setNotice("Check your email to confirm your account, then sign in.");
+      return;
+    }
     router.push("/onboarding/profile");
   }
 
@@ -51,7 +64,7 @@ export default function Signup() {
           <div style={{ fontSize: 20, fontWeight: 500, color: "#F8FAFC" }}>WealthMosaic</div>
           <div style={{ fontSize: 13, color: "#64748B", marginTop: 4 }}>Create your account</div>
           <div style={{ display: "inline-block", marginTop: 10, padding: "4px 10px", borderRadius: 999, background: "#FEF3C7", color: "#92400E", fontSize: 11, fontWeight: 500 }}>
-            Prototype demo: no account is created and nothing is saved
+            Prototype: your account is real; onboarding answers stay in this browser
           </div>
         </div>
 
@@ -70,6 +83,7 @@ export default function Signup() {
           {field("Password", "password", "password", "Min. 8 characters")}
           {field("Confirm password", "confirm", "password", "Re-enter password")}
 
+          {notice && <div style={{ background: "#EAF3DE", color: "#27500A", borderRadius: 8, padding: "9px 12px", fontSize: 12, marginBottom: 16 }}>{notice}</div>}
           {error && <div style={{ background: "#FCEBEB", color: "#791F1F", borderRadius: 8, padding: "9px 12px", fontSize: 12, marginBottom: 16 }}>{error}</div>}
 
           <button
@@ -77,7 +91,7 @@ export default function Signup() {
             disabled={loading}
             style={{ width: "100%", background: "linear-gradient(135deg,#2563EB,#7C3AED)", color: "#fff", border: "none", borderRadius: 10, padding: "13px", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? "Continuing..." : "Continue demo →"}
+            {loading ? "Creating account..." : "Create account →"}
           </button>
 
           <div style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "#64748B" }}>
